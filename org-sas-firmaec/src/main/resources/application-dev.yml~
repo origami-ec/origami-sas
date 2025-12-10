@@ -1,0 +1,27 @@
+app:
+  nombre: ORIGAMIGT
+  origamiDocs: http://172.16.8.66:8713
+  imagenDoc: http://172.16.8.66:8722/firmaElectronica/docImagen/
+  documental: http://172.16.8.66:8718/archivo/consultarDocumento/
+  planificacion: http://172.16.8.66:8721/firmaDocumento/actualizarDesk
+  administrativo: http://172.16.8.66:8716/firmaDocumento/actualizarDesk
+  recaudacion: http://172.16.8.66:8723/rec/firmaDocumento/actualizarDesk
+  calidad: http://172.16.8.66:8724/firmaDocumento/actualizarDesk
+  rutaArchivos: /origamigt_archivo/firmasElectronicas/
+  archivosPCLocal: /origamigt_archivo/documentos/
+  imagenesPCLocal: /origamigt_archivo/imagenes/
+  ext: .p12
+
+eureka:
+  instance:
+    leaseRenewalIntervalInSeconds: 5
+    leaseExpirationDurationInSeconds: 3
+    appname: FIRMAEC-ZERVICES
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+
+#logging:
+#  file:
+#    name: origami-firma.log
+

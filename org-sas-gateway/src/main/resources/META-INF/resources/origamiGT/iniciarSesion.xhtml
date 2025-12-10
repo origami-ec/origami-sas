@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <f:facet name="first">
+        <meta http-equiv="x-ua-compatible" content="IE=edge" />
+        <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <link rel="shortcut icon" type="image/jpg"  href="#{request.contextPath}/resources/paradise-layout/images/origami.png" />
+        <meta http-equiv="refresh" content="#{facesContext.externalContext.sessionMaxInactiveInterval};url=#{request.contextPath}/iniciarSesion"/>
+    </f:facet>
+    <title>SMART-GOB</title>
+</h:head>
+<f:metadata>
+    <f:event type="preRenderView" listener="#{loginMB.doPreRenderView()}"/>
+    <f:viewParam name="code1" value="#{loginMB.codeUser}"/>
+    <f:viewParam name="code2" value="#{loginMB.codePass}"/>
+</f:metadata>
+
+<h:body styleClass="login-body">
+    <h:form id="formMain">
+*************
+        *****
+
+        <div class="login-panel p-grid">
+            <div class="p-col-12 logo-container">
+                <center>
+                    <br/>
+                    <p:graphicImage  name="images/origami.png" style="width: 70%; height: 40%; text-align: center"
+                                     library="paradise-layout"/><br/><br/>
+                </center>
+            </div>
+            <h:panelGroup rendered="#{!loginMB.forgotPassword}">
+                <p:messages  id="messages" showDetail="true" closable="true" globalOnly="true"  />
+                <p:tabView activeIndex="1" >
+                    <p:ajax event="tabChange" listener="#{loginMB.onTabChange}" />
+
+                    <p:tab id="ACTIVE_DIRECTORY" title="Active directory">
+                        <div class="p-col-12">
+                            <p:outputLabel style="font-weight: bolder; color: black" for="activeDirectory" value="Active Directory *Recuerda que su usuario es el nombre del correo ejemplo usuario@ibarra.gob.ec*" /><br/>
+                            <div class="input-wrapper">
+                                <p:inputText id="activeDirectory" placeholder="Identificación" value="#{loginMB.activeDirectory}"   />
+                                <i class="pi pi-desktop" />
+                            </div>
+                        </div>
+                        <div class="p-col-12">
+                            <p:outputLabel for="clave" value="Clave" />
+                            <div class="input-wrapper">
+                                <p:password id="clave"
+                                            value="#{loginMB.activeDirectoryPass}" placeholder="Clave"  feedback="false" />
+                                <i class="pi pi-lock" />
+                            </div>
+                        </div>
+                        <div class="p-col-12 button-container">
+                            <p:commandButton id="btnLoginActiveDirectory" value="Iniciar sesión con AD" icon="fa fa-user"  update="formMain"
+                                             action="#{loginMB.doLogin()}" style="font-weight: bold;"
+                                             styleClass="info-button rounded-button p-mr-2 p-mb-2"/>
+                        </div><br/><br/>
+                    </p:tab>
+                    <p:tab id="ORIGAMI_GT" title="SMART-GOB" >
+                        <div class="p-col-12">
+                            <p:outputLabel for="username" value="Iniciar Sesión" />
+                            <div class="input-wrapper">
+                                <p:inputText id="username" placeholder="Identificación" value="#{loginMB.user}"   />
+                                <i class="pi pi-user" />
+                            </div>
+                        </div>
+                        <div class="p-col-12">
+                            <p:outputLabel for="password" value="Contraseña" />
+                            <div class="input-wrapper">
+                                <p:password id="password"
+                                            value="#{loginMB.pass}" placeholder="Contraseña"  feedback="false" />
+                                <i class="pi pi-lock" />
+                            </div>
+                        </div>
+                        <div class="p-col-12 button-container">
+                            <p:commandButton id="btnLogIn" value="Acceder" icon="fa fa-user"  update="formMain"
+                                             action="#{loginMB.doLogin()}" style="font-weight: bold;"
+                                             styleClass="info-button rounded-button p-mr-2 p-mb-2"/>
+                        </div><br/><br/>
+                    </p:tab>
+                </p:tabView>
+
+            </h:panelGroup>
+            <h:panelGroup rendered="#{loginMB.forgotPassword}">
+                <h:panelGroup rendered="#{loginMB.usuario.id==null}" >
+                    <div class="p-col-12">
+                        <p:outputLabel for="identificacion" value="Ingrese su identificación" />
+                        <div class="input-wrapper">
+                            <p:inputText id="identificacion" placeholder="Identificación" value="#{loginMB.identificacion}"   />
+                            <i class="pi pi-user" />
+                        </div>
+                    </div>
+                </h:panelGroup>
+                <center>
+                    <p:outputLabel value="Se enviará un código de verificación al siguiente correo electrónico:"
+                                   rendered="#{loginMB.usuario.id !=null}"/>
+                    <p:outputLabel value="#{loginMB.usuario.persona.correoEncriptado}" style="font-weight: bold"/>
+                </center>
+                <div class="p-col-12 button-container">
+                    <p:commandButton id="btn_aceptar" value="Aceptar" icon="fa fa-user" update="formMain"
+                                     action="#{loginMB.findUsuario()}" style="font-weight: bold;"
+                                     styleClass="info-button rounded-button p-mr-2 p-mb-2" rendered="#{loginMB.usuario.id ==null}"/>
+                    <p:commandButton id="btn_aceptar_codigo" value="Aceptar" icon="fa fa-user" rendered="#{loginMB.usuario.id !=null}"
+                                     action="#{loginMB.enviarCodigoVerificacion()}" style="font-weight: bold;"
+                                     styleClass="info-button rounded-button p-mr-2 p-mb-2" update="formMain"/>
+                    <p:commandButton value="Regresar al inicio de sesión " actionListener="#{loginMB.cancelarOlvidoContrasenia()}"
+                                     styleClass="text-button p-mr-2 p-mb-2" process="@this"
+                                     update="formMain" style="color: black;width: auto;float: right; text-align: right" /><br/><br/>
+                </div>
+            </h:panelGroup>
+        </div>
+    </h:form>
+    <p:ajaxStatus onstart="PF('dlgStatus').show()" oncomplete="PF('dlgStatus').hide()" />
+    <p:dialog id="dlgStatus" widgetVar="dlgStatus" modal="true" draggable="false"  closable="false"
+              resizable="false" showHeader="false" >
+        <i class="fa fa-circle-o-notch fa-spin layout-ajax-loader-icon" aria-hidden="true"></i>
+    </p:dialog>
+</h:body>
+</html>

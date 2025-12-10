@@ -1,0 +1,7 @@
+FROM openjdk:23-oraclelinux8
+COPY ./target/org-ibarra-seguridad-0.0.1-SNAPSHOT.jar /opt/app/org-ibarra-seguridad.jar
+WORKDIR /opt/app
+RUN sh -c 'touch org-ibarra-seguridad.jar'
+EXPOSE 8712
+ENTRYPOINT ["java","-Dspring.profiles.active=dev", "-Dspring.cloud.config.uri=http://172.16.8.66:8888","-jar","org-ibarra-seguridad.jar"]
+

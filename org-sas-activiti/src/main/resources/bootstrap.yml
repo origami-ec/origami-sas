@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: bpm
+  profiles:
+    active: local
+  #active: dev
+    #+active: local-oficina
+    #active: dev
+    #active: local-dev
+  cloud:
+    config:
+      uri: http://127.0.0.1:8888

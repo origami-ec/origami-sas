@@ -1,0 +1,23 @@
+version: '2'
+services:
+  activiti-bpmn:
+    container_name: activiti-bpmn
+    image: activiti-bpmn:latest
+    environment:
+      - TZ=America/Guayaquil
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_CLOUD_CONFIG_URI=${SPRING_CLOUD_CONFIG_URI}
+    ports:
+      - 8714:8714
+
+    volumes:
+      - /origamigt_archivo/bpmn/activiti/:/origamigt_archivo/bpmn/activiti/
+      - /origamigt_archivo/bpmn/:/origamigt_archivo/bpmn/
+
+    networks:
+      - default
+
+networks:
+  default:
+    name: ${DOCKER_NETWORK}
+    external: true

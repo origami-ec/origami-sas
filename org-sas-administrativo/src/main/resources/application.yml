@@ -1,0 +1,21 @@
+server:
+  port: 8716
+  servlet:
+    context-path: /adm
+spring:
+  application:
+    name: administrativo
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    serialization:
+      fail-on-empty-beans: false
+  main:
+    allow-bean-definition-overriding: true
+redis:
+  enabled: false
+
+logging:
+  level:
+    org:
+      hibernate:
+        sql: ERROR

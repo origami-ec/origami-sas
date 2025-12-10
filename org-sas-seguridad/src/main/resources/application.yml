@@ -1,0 +1,16 @@
+server:
+  port: 8712
+spring:
+  application:
+    name: seguridad-ws
+
+  main:
+    allow-bean-definition-overriding: true
+redis:
+  enabled: false
+
+logging:
+  level:
+    org:
+      hibernate:
+        sql: ERROR

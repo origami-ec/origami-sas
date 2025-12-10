@@ -1,0 +1,19 @@
+server:
+  port: 8713
+  http:
+    port: 8443
+spring:
+  application:
+    name: zuul-ws
+  servlet:
+    multipart:
+      max-file-size: 2GB
+      max-request-size: 2GB
+    javax:
+      management:
+        remote:
+          rmi: error
+
+#logging:
+#  file:
+#    name: zull.log

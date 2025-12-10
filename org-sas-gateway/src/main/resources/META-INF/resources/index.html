@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="main.css" />
+    <link rel="shortcut icon" type="image/ico" href="images/origami.ico"/>
+    <meta charset="UTF-8">
+    <title>Origami-GT</title>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <script>
+        function createNode(element) {
+            return document.createElement(element);
+        }
+
+        function append(parent, el) {
+            return parent.appendChild(el);
+        }
+
+        function load() {
+            var context = window.location.pathname;
+            var host = window.location.host;
+            var protocol = window.location.protocol.replace(/:/g,'')
+            console.log('protocol: ' + protocol);
+            if ('/' === context) {
+                context = '/origamiGT';
+            }
+            if (context.endsWith("/")) {
+                context = context.substring(0, context.length - 1);
+            }
+            var div = document.getElementById('divID');
+            const url = protocol + '://' + host + '/allModulo';
+            fetch(url)
+                .then((resp) => resp.json())
+                .then(function (data) {
+                    // console.log(data);
+                    return data.map(function (dt) {
+                        let li = createNode('div');
+                        li.onclick = function () {
+                            console.log('context: ' + context);
+                            window.open(context + dt.appName.replace('**', ''), '_self');
+                        };
+                        li.className += 'app-content';
+                        li.setAttribute('title', `${dt.appName.replace('**', '')}`);
+                        let br = createNode('br');
+                        let icon = createNode('span');
+                        let span = createNode('span');
+                        icon.className += 'material-icons md-48'
+                        icon.innerHTML = `${dt.icon}`;
+                        icon.setAttribute('title', `${dt.appName.replace('**', '')}`);
+                        span.innerHTML = `${dt.descripcion}`;
+                        span.setAttribute('title', `${dt.appName.replace('**', '')}`);
+                        append(li, icon);
+                        append(li, br);
+                        append(li, span);
+                        append(div, li);
+                    })
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+
+        window.onload = load;
+    </script>
+</head>
+<body>
+<body style="background-color: #F5F5F5; margin: 0; padding: 0; -webkit-text-size-adjust: none; text-size-adjust: none;">
+<table border="0" cellpadding="0" class="nl-container" role="presentation"
+       style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #F5F5F5; border-collapse: collapse;" width="100%">
+    <tbody>
+    <tr>
+        <td>
+            <!--            Inicio Espacion En Blanco-->
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-1" role="presentation"
+                   width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack"
+                               role="presentation"
+                               width="750">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1" width="100%">
+                                    <div class="spacer_block"/>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <!--            Fin Espacion En Blanco-->
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-2" role="presentation"
+                   style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content"
+                               role="presentation"
+                               style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #FFFFFF; color: #333; width: 750px;"
+                               width="750">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1"
+                                    width="50%">
+                                    <table class="image_block"
+                                           role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                           width="100%">
+                                        <tr>
+                                            <td class="td-logo">
+                                                <div style="line-height:10px"><img alt="Image"
+                                                                                   src="/favicon.ico"
+                                                                                   title="Image" width="195"
+                                                                                   class="logo"
+                                                                                   onclick="window.open('https://origamiec.com/', '_blank');"/>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <td class="column column-2"
+                                    width="50%">
+                                    <table role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                           width="100%">
+                                        <tr>
+                                            <td style="padding-bottom:35px;padding-left:10px;padding-top:35px;text-align:right;">
+                                                <div align="right">
+                                                    <a href="origamiGT/ventanilla/iniciarSesion" id="loginApp"
+                                                       style="text-decoration:none;display:inline-block;color:#052d3d;background-color:#e3edfe;border-radius:14px;width:auto;border-top:1px solid #e3edfe;font-weight:undefined;border-right:1px solid #bcc1cb;border-bottom:1px solid #e3edfe;border-left:1px solid #e3edfe;padding-top:5px;padding-bottom:5px;font-family:Lato, Tahoma, Verdana, Segoe, sans-serif;text-align:center;mso-border-alt:none;word-break:keep-all;"
+                                                       target="_self"><span
+                                                            style="padding-left:20px;padding-right:20px;font-size:14px;display:inline-block;letter-spacing:normal;"><span
+                                                            style="font-size: 16px; line-height: 2; word-break: break-word; mso-line-height-alt: 32px;"><span
+                                                            data-mce-style="font-size: 14px; line-height: 28px;"
+                                                            style="font-size: 14px; line-height: 28px;">Ingresar</span></span></span></a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-3" role="presentation"
+                   style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack"
+                               role="presentation"
+                               style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; background-color: #ecf0f3; color: #000000; width: 750px;"
+                               width="750">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1"
+                                    style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-left: 25px; padding-right: 25px; padding-top: 5px; padding-bottom: 60px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;"
+                                    width="100%">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="text_block"
+                                           role="presentation"
+                                           style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; word-break: break-word;"
+                                           width="100%">
+                                        <tr>
+                                            <td class="content-app">
+                                                <div style="font-family: sans-serif">
+                                                    <div class="txtTinyMce-wrapper wrapper" id="divID">
+
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-4" role="presentation"
+                   style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack"
+                               role="presentation"
+                               style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 750px;"
+                               width="750">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1"
+                                    style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 20px; padding-bottom: 60px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;"
+                                    width="100%">
+                                    <table border="0" cellpadding="10" cellspacing="0" class="social_block"
+                                           role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                           width="100%">
+
+                                    </table>
+                                    <table border="0" cellpadding="10" cellspacing="0" class="divider_block"
+                                           role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                           width="100%">
+                                        <tr>
+                                            <td>
+                                                <div align="center">
+                                                    <table border="0" cellpadding="0" cellspacing="0"
+                                                           role="presentation"
+                                                           style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                                           width="60%">
+                                                        <tr>
+                                                            <td class="divider_inner"
+                                                                style="font-size: 1px; line-height: 1px; border-top: 1px dotted #C4C4C4;">
+                                                                <span> </span></td>
+                                                        </tr>
+                                                    </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table align="center" border="0" cellpadding="0" cellspacing="0" class="row row-5" role="presentation"
+                   style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;" width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" class="row-content stack"
+                               role="presentation"
+                               style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; color: #000000; width: 750px;"
+                               width="750">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1"
+                                    style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; font-weight: 400; text-align: left; vertical-align: top; padding-top: 5px; padding-bottom: 5px; border-top: 0px; border-right: 0px; border-bottom: 0px; border-left: 0px;"
+                                    width="100%">
+                                    <table border="0" cellpadding="0" cellspacing="0" class="icons_block"
+                                           role="presentation" style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                           width="100%">
+                                        <tr>
+                                            <td style="vertical-align: middle; color: #9d9d9d; font-family: inherit; font-size: 15px; padding-bottom: 5px; padding-top: 5px; text-align: center;">
+                                                <table cellpadding="0" cellspacing="0" role="presentation"
+                                                       style="mso-table-lspace: 0pt; mso-table-rspace: 0pt;"
+                                                       width="100%">
+                                                    <tr>
+                                                        <td style="vertical-align: middle; text-align: center;">
+                                                            <table cellpadding="0" cellspacing="0" class="icons-inner"
+                                                                   role="presentation"
+                                                                   style="mso-table-lspace: 0pt; mso-table-rspace: 0pt; display: inline-block; margin-right: -4px; padding-left: 0px; padding-right: 0px;">
+                                                                <tr>
+                                                                    <td style="vertical-align: middle; text-align: center; padding-top: 5px; padding-bottom: 5px; padding-left: 5px; padding-right: 6px;">
+                                                                        <a href="https://origamiec.com/"
+                                                                           style="text-decoration: none;"
+                                                                           target="_blank"><img align="center"
+                                                                                                alt="Designed with BEE"
+                                                                                                class="icon" height="32"
+                                                                                                src="/logo-origami.png"
+                                                                                                style="display: block; height: auto; margin: 0 auto; border: 0;"
+                                                                                                width="34"/></a></td>
+                                                                    <td style="font-family: Lato, Tahoma, Verdana, Segoe, sans-serif; font-size: 15px; color: #9d9d9d; vertical-align: middle; letter-spacing: undefined; text-align: center;">
+                                                                        <a href="https://origamiec.com/"
+                                                                           style="color: #9d9d9d; text-decoration: none;"
+                                                                           target="_blank">OrigamiEC</a></td>
+                                                                </tr>
+                                                            </table>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table><!-- End -->
+</body>
+</body>
+</html>

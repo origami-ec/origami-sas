@@ -1,0 +1,6 @@
+server:
+  port: 8715
+
+spring:
+  application:
+    name: email-ws

@@ -1,0 +1,39 @@
+server:
+  port: 8714
+  whitelabel:
+    enabled: false
+  servlet:
+    encoding:
+      charset: UTF-8
+      force: true
+      force-request: true
+      force-response: true
+
+spring:
+  application:
+    name: bpm
+  main:
+    allow-bean-definition-overriding: true
+    allow-circular-references: true
+
+  activiti:
+    createDiagramOnDeploy: true
+    check-process-definitions: false
+    database-schema-update: none
+    async-executor:
+      async-job-lock-time-in-millis: 180000
+      timer-lock-time-in-millis: 180000
+      retry-wait-time-in-millis: 30000
+
+  mvc:
+    favicon:
+      enabled: false
+
+  groovy:
+    template:
+      check-template-location: false
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none

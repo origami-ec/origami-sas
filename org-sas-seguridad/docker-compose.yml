@@ -1,0 +1,21 @@
+version: '2'
+
+services:
+  seguridad:
+    container_name: seguridad
+    image: seguridad:latest
+    environment:
+      - TZ=America/Guayaquil
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+      - SPRING_CLOUD_CONFIG_URI=${SPRING_CLOUD_CONFIG_URI}
+    ports:
+      - 8712:8712
+    volumes:
+      - /origamigt_archivo/:/origamigt_archivo/
+    networks:
+      - default
+
+networks:
+  default:
+    name: ${DOCKER_NETWORK}
+    external: true

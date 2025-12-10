@@ -1,0 +1,106 @@
+server:
+  port: 80
+
+  # Application context Configuracion
+  servlet:
+    context-path: /origamiGT
+    contextPath: /origamiGT
+
+  # Error handling Configuracion
+  error:
+    path: /error
+    whitelabel:
+      enabled: false
+
+  # Tomcat server Configuracion
+  tomcat:
+    redirect-context-root: true
+    max-http-form-post-size: 209715200  # 200MB
+
+  # HTTP Configuracion
+  forward-headers-strategy: native
+  max-http-request-header-size: 209715200
+
+session:
+  ip:
+    blacklist:
+#      - "192.168.1.100"
+#      - "10.0.0.5"
+  max-per-ip: 10
+
+resilience4j:
+  thread-pool-bulkhead:
+    enabled: false
+  ratelimiter:
+    instances:
+      gatewayRateLimiter:
+        limitForPeriod: 300
+        limitRefreshPeriod: 1s
+        timeoutDuration: 0
+
+
+spring:
+  application:
+    name: gateway
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    servlet:
+      path: /origamiGT
+  session:
+    store-type: redis
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            # Define allowed origins more precisely, remove redundant entries
+            allowed-origins:
+              - "*"
+            # Headers organized alphabetically, duplicates removed
+            allowed-headers: &standard_headers
+              - "Accept"
+              - "Access-Control-Request-Headers"
+              - "Access-Control-Request-Method"
+              - "Authorization"
+              - "Content-Type"
+              - "Cookie"
+              - "Origin"
+              - "X-Requested-With"
+              - "faces-request"
+            # Methods organized alphabetically
+            allowed-methods: &standard_methods
+              - DELETE
+              - GET
+              - HEAD
+              - OPTIONS
+              - POST
+              - PUT
+              - PATCH
+            expose-headers: *standard_headers
+            max-age: 3600
+
+
+eureka:
+  client:
+    healthcheck:
+      enabled: true
+logging:
+  level:
+    ROOT: ERROR
+
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          multiplier: 2.0

@@ -1,0 +1,6 @@
+server:
+  port: 8722
+spring:
+  profiles:
+    active: desk-test
+
