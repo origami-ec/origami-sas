@@ -1,4 +1,3 @@
-version: "2"
 services:
   documental:
     container_name: documental

@@ -1,4 +1,3 @@
-version: '2'
 services:
   activiti-bpmn:
     container_name: activiti-bpmn

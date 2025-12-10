@@ -1,8 +1,0 @@
-FROM openjdk:22-oraclelinux8
-#RUN apk add --update ttf-dejavu && rm -rf /var/cache/apk/*
-COPY ./target/org-ibarra-activiti-0.0.1.jar /opt/app/org-ibarra-activiti-0.0.1.jar
-WORKDIR /opt/app
-RUN sh -c 'touch org-ibarra-activiti-0.0.1.jar'
-EXPOSE 8714
-ENV JAVA_OPTS="-server --add-exports java.desktop/sun.font=ALL-UNNAMED"
-ENTRYPOINT ["java","-Dspring.profiles.active=dev", "-Dspring.cloud.config.uri=http://172.16.8.66:8888","-jar","org-ibarra-activiti-0.0.1.jar"]
