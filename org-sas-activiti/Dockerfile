@@ -9,3 +9,4 @@ WORKDIR /opt/app
 EXPOSE 8714
 ENV JAVA_OPTS="-server --add-exports java.desktop/sun.font=ALL-UNNAMED"
 ENTRYPOINT ["java", "-jar","org-ibarra-activiti-0.0.1.jar"]
+=

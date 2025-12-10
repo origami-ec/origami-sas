@@ -37,8 +37,8 @@ public class KafkaLogServices {
         if (perfilActivo.equals("prod") || perfilActivo.equals("pre")) {
             //  logger.info(String.format("#### -> Mensaje -> %s", message));
             try {
-                String url = "http://172.16.8.138:8717/logs/guardar";
-                restService.restPOST(url, null, logs, Logs.class);
+                //String url = "http://172.16.8.138:8717/logs/guardar";
+                //restService.restPOST(url, null, logs, Logs.class);
                 //this.kafkaTemplate.send(topics[0], message);
             } catch (Exception e) {
                 System.out.println("Error al enviar los asgar kafkaTemplate");
