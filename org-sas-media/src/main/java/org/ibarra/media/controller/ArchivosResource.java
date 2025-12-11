@@ -207,6 +207,8 @@ public class ArchivosResource {
             System.out.println("path " + file.getPath());
             pdfContents = Files.readAllBytes(file.toPath());
             HttpHeaders headers = new HttpHeaders();
+            headers.add("Access-Control-Allow-Origin", "*");
+            headers.add("Content-Type", "application/pdf");
             headers.add("Content-Disposition", (descarga.equals("DOWNLOAD") ? "attachment" : "inline") + "; filename=" + archivoDescarga);
             return new ResponseEntity<>(pdfContents, headers, HttpStatus.OK);
         } catch (IOException e) {
