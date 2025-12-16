@@ -25,6 +25,7 @@ import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.ibarra.conf.AppProps;
 import org.ibarra.dto.*;
 import org.ibarra.dto.flujoDinamico.*;
+import org.ibarra.dto.sgm.AclUser;
 import org.ibarra.entity.HistoricoTramite;
 import org.ibarra.entity.TareaModificadaTramite;
 import org.ibarra.entity.TipoTramite;
@@ -52,6 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -372,7 +374,42 @@ public class EdicionDiagramaService {
 
     public List<TaskModelTramite> buscarTarea(String idProcInst, HistoricoTramiteDto tramite) {
         System.out.println("Process Instance " + idProcInst);
-        List<HistoricTaskInstance> tasks = this.processEngine.getHistoryService().createHistoricTaskInstanceQuery().processInstanceId(idProcInst).orderByTaskCreateTime().asc().list();
+
+        List<HistoricTaskInstance> tasks = new ArrayList<>();
+
+        List<HistoricTaskInstance> tasksPrincipal = this.processEngine.getHistoryService()
+                .createHistoricTaskInstanceQuery()
+                .processInstanceId(idProcInst)
+                .orderByTaskCreateTime()
+                .asc()
+                .list();
+
+        if (Utils.isNotEmpty(tasksPrincipal)) {
+            tasks.addAll(tasksPrincipal);
+        }
+
+        // Buscar subprocesos en caso de los trámites de Avalúos y Catastros
+        List<HistoricProcessInstance> subproceso = processEngine.getHistoryService()
+                .createHistoricProcessInstanceQuery()
+                .superProcessInstanceId(idProcInst)
+                .list();
+
+        // Agregar tareas de los subprocesos
+        if (Utils.isNotEmpty(subproceso)) {
+            List<HistoricTaskInstance> tasksSubproceso = this.processEngine.getHistoryService()
+                    .createHistoricTaskInstanceQuery()
+                    .processInstanceId(subproceso.getFirst().getId())
+                    .orderByTaskCreateTime()
+                    .asc()
+                    .list();
+
+            if (Utils.isNotEmpty(tasksSubproceso)) {
+                tasks.addAll(tasksSubproceso);
+            }
+
+            tasks.sort(Comparator.comparing(HistoricTaskInstance::getStartTime));
+        }
+
         if (Utils.isNotEmpty(tasks)) {
             List<TaskModelTramite> result = new LinkedList<>();
             Long idTramite = tramite.getId();
@@ -397,7 +434,17 @@ public class EdicionDiagramaService {
                 }
                 f.setDescription(task.getDescription());
                 f.setName(task.getName());
-                f.setDueDate(task.getDueDate());
+
+                // En los trámites de catastros, no se ha establecido tiempo, se van a poner 3 días para cada tarea
+                if (task.getDueDate() == null) {
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(task.getStartTime());
+                    cal.add(Calendar.DAY_OF_MONTH, 3);
+                    f.setDueDate(cal.getTime());
+                } else {
+                    f.setDueDate(task.getDueDate());
+                }
+
                 f.setCreataDate(task.getStartTime());
                 f.setEndDate(task.getEndTime());
                 f.setId(task.getId());
@@ -441,14 +488,35 @@ public class EdicionDiagramaService {
 
                 String[] usuarios = f.getAssignee().split(",");
                 for (String usuario : usuarios) {
-                    UsuarioDetalle ud = personaService.getUsuario(usuario);
-                    f.getUsuarios().add(ud);
+                    UsuarioDetalle ud;
+
+                    if (usuario.matches("[A-Z]{2}[a-z]+")) { // Usuarios del sistema de catastros
+                        BusquedaDinamica b = BusquedaDinamica.builder("AclUser").unicoResultado(true)
+                                .where("usuario", usuario)
+                                .build();
+
+                        AclUser user = (AclUser) this.restService.restPOST(this.appProps.getUrlBddimi().concat("busquedas/findBy"), null, b, AclUser.class);
+
+                        if (user != null) {
+                            ud = new UsuarioDetalle();
+                            ud.setUsuario(user.getUsuario());
+                            ServidorDatos sd = new ServidorDatos();
+                            sd.setApellidos(user.getEnte().getApellidos());
+                            sd.setNombres(user.getEnte().getNombres());
+                            sd.setIdentificacion(user.getEnte().getIdentificacion());
+                            ud.setServidor(sd);
+                            f.getUsuarios().add(ud);
+                        }
+
+                    } else if (usuario.matches("[a-z]+")) {  // Usuarios de SmartGob
+                        ud = personaService.getUsuario(usuario);
+                        if (ud != null) {
+                            f.getUsuarios().add(ud);
+                        }
+                    }
                 }
 
-
-
                 result.add(f);
-
 
 
             }
@@ -461,41 +529,62 @@ public class EdicionDiagramaService {
         try {
             return buscarTramite(null, idTramite);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+        return null;
     }
 
     public HistoricoTramiteDto buscarTramite(Long idTramite, String numTramite) {
         try {
             HistoricoTramiteDto htd;
-            if(idTramite != null) {
-                 htd = tramiteService.consultarXid(idTramite, null);
-            }else{
+            System.out.println("numTramite: "+numTramite);
+            if (idTramite != null) {
+                htd = tramiteService.consultarXid(idTramite, null);
+            } else {
+                System.out.println("entra aqui");
                 htd = tramiteService.consultarXid(null, numTramite);
             }
 
-            System.out.println("Tramite id " + idTramite + " relacionar observacion con tareas, getTramite " + htd.getTramite());
+           // System.out.println("Tramite id " + idTramite + " relacionar observacion con tareas, getTramite " + htd.getTramite());
             if (htd != null) {
+                System.out.println("llegó>>>>>>>>");
                 htd.setTaskModelTramites(this.buscarTarea(htd.getIdProceso(), htd));
                 if (Utils.isNotEmpty(htd.getTaskModelTramites())) {
                     List<HistoricoTramiteObservacionDto> observacionDtos = this.processService.procesosObservaciones(htd);
                     observacionDtos.sort(Comparator.comparing(HistoricoTramiteObservacionDto::getFechaCreacion));
-                    for (TaskModelTramite od : htd.getTaskModelTramites()) {
-                        for (HistoricoTramiteObservacionDto o : observacionDtos) {
-                            if (o.getTarea() != null) {
-                                System.out.println("Relacion de observacion con tarea " + o.getTarea());
-                                if (o.getTarea().strip().equalsIgnoreCase(od.getName().strip())) {
-                                    od.setUltimaObservacion(o);
-                                }
-                            }
+                    Map<String, HistoricoTramiteObservacionDto> observacionesPorTarea = observacionDtos.stream()
+                            .filter(o -> o.getTarea() != null)
+                            .collect(Collectors.toMap(
+                                    o -> o.getTarea().strip().toLowerCase(),
+                                    o -> o,
+                                    (existing, replacement) -> existing // Mantener la primera observación en caso de duplicados
+                            ));
+
+                    htd.getTaskModelTramites().forEach(task -> {
+                        HistoricoTramiteObservacionDto observacion = observacionesPorTarea.get(task.getName().strip().toLowerCase());
+                        if (observacion != null) {
+                            task.setUltimaObservacion(observacion);
                         }
-                    }
+                    });
+
+//                    for (TaskModelTramite od : htd.getTaskModelTramites()) {
+//                        for (HistoricoTramiteObservacionDto o : observacionDtos) {
+//                            if (o.getTarea() != null) {
+//                                System.out.println("Relacion de observacion con tarea " + o.getTarea());
+//                                if (o.getTarea().strip().equalsIgnoreCase(od.getName().strip())) {
+//                                    od.setUltimaObservacion(o);
+//                                }
+//                            }
+//                        }
+//                    }
                     htd.setObservaciones(observacionDtos);
                 }
+            }else{
+                System.out.println("vacío>>>>>>>>");
             }
             return htd;
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "", e);
+            e.printStackTrace();
             return null;
         }
     }

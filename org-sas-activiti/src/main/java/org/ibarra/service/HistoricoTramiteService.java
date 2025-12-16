@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.ibarra.conf.AppProps;
 import org.ibarra.dto.*;
 import org.ibarra.dto.Process;
+import org.ibarra.dto.sgm.AclUser;
 import org.ibarra.entity.HistoricoTramite;
 import org.ibarra.entity.HistoricoTramiteObservacion;
 import org.ibarra.entity.Persona;
@@ -19,6 +20,7 @@ import org.ibarra.repository.HistoricoTramiteRepo;
 import org.ibarra.repository.PersonaRepository;
 import org.ibarra.util.Constantes;
 import org.ibarra.util.Utils;
+import org.ibarra.util.model.BusquedaDinamica;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -52,6 +54,10 @@ public class HistoricoTramiteService {
     private PersonaMapper personaMapper;
     @Autowired
     private PersonaService personaService;
+    @Autowired
+    private EdicionDiagramaService diagramaService;
+    @Autowired
+    private ProcessService processService;
 
     public HistoricoTramiteDto consultarXtramite(String tramite) {
         HistoricoTramite ht = repository.findFirstByTramiteOrderByIdDesc(tramite);
@@ -60,7 +66,7 @@ public class HistoricoTramiteService {
             if (dto != null) {
                 if (ht.getSolicitante() != null) {
                     try {
-                        PersonaDto persona = personaService.consultarXid(ht.getSolicitante().getId());
+                        PersonaDto persona = (PersonaDto) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + ht.getSolicitante().getId(), null, null, PersonaDto.class);
                         if (persona != null && persona.getNumIdentificacion() != null) {
                             dto.setSolicitante(persona);
                         }
@@ -82,10 +88,20 @@ public class HistoricoTramiteService {
                 if (ht.getSolicitante() != null) {
                     Persona persona = personaRepository.getReferenceById(ht.getSolicitante().getId());
                     PersonaDto personaDto = personaMapper.toDto(persona);
-
+                    //PersonaDto persona = (PersonaDto) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + ht.getSolicitante(), null, null, PersonaDto.class);
                     if (personaDto != null && personaDto.getNumIdentificacion() != null) {
                         RespuestaWs respuesta = new RespuestaWs();
                         respuesta.setData(persona.getNumIdentificacion());
+
+                        /*PersonaDto ventanilla = (PersonaDto) restService.restPOST(appProps.getUrlVentanillaExterna() + "consultaPersonaInterna", null, respuesta, PersonaDto.class);
+
+                        if (ventanilla != null) {
+                            System.out.println("persona.getNumIdentificacion() " + persona.getNumIdentificacion());
+                            System.out.println("ventanilla.getCorreo() " + ventanilla.getCorreo());
+                            persona.setCorreoVentanilla(ventanilla.getCorreo());
+                        }*/
+
+
                         dto.setSolicitante(personaDto);
                     }
                 }
@@ -101,7 +117,7 @@ public class HistoricoTramiteService {
         HistoricoTramiteDto dto = tramiteMapper.toDto(ht);
         if (dto != null) {
             if (ht.getSolicitante() != null) {
-                PersonaDto persona = personaMapper.toDto(ht.getSolicitante());
+                PersonaDto persona = (PersonaDto) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + ht.getSolicitante(), null, null, PersonaDto.class);
                 if (persona != null && persona.getNumIdentificacion() != null) {
                     dto.setSolicitante(persona);
                 }
@@ -186,7 +202,7 @@ public class HistoricoTramiteService {
 
         }
 
-        HistoricoTramiteObservacion observacion = guardarObservacion(tarea.getTramite().getId(), tarea.getObservacionUsuario(), tarea);
+        HistoricoTramiteObservacion observacion = guardarObservacion(tarea.getTramite().getId(), tarea.getObservacionUsuario() == null ? tarea.getAssignee() : tarea.getObservacionUsuario(), tarea);
         return observacionMapper.toDto(observacion);
     }
 
@@ -194,7 +210,6 @@ public class HistoricoTramiteService {
         try {
             HistoricoTramiteObservacion observacion = new HistoricoTramiteObservacion();
             observacion.setObservacion(tarea.getObservacion() == null ? "Continuar Trámite" : tarea.getObservacion());
-            observacion.setObservacionPublica(tarea.getObservacionPublica() == null ? "T" : tarea.getObservacionPublica());
             observacion.setTarea(tarea.getTaskName());
             observacion.setEstado(Boolean.TRUE);
             observacion.setTramite(new HistoricoTramite(historicoTramiteId));
@@ -210,21 +225,78 @@ public class HistoricoTramiteService {
     public List<HistoricoTramiteObservacionDto> observaciones(Long tramite) {
         try {
             List<HistoricoTramiteObservacion> observaciones = observacionRepo.findAllByTramite_IdAndEstadoTrueOrderByFechaCreacionAsc(tramite);
+
             if (Utils.isNotEmpty(observaciones)) {
                 List<HistoricoTramiteObservacionDto> observacionesDto = observacionMapper.toDto(observaciones);
-                for (HistoricoTramiteObservacionDto obs : observacionesDto) {
-                    if (esCedulaValida(obs.getUsuarioCreacion()) || esRucValido(obs.getUsuarioCreacion())) {
-                        System.out.println("es CedulaRUCValida " + obs.getUsuarioCreacion());
-                        continue;
+                SolicitudServicioDto ss = null;
+                if (observaciones.getFirst().getTramite().getTipoTramite().getVentanillaPublica()) {
+                    ss = obtenerDatosSolicitud(observaciones.getFirst().getTramite().getReferenciaId());
+                } else {
+                    ss = new SolicitudServicioDto();
+                }
+
+                HistoricoTramite ht = observaciones.get(0).getTramite();
+
+                List<Tarea> tasks = processService.listTaskMap(ht.getIdProceso());
+
+                Tarea tareaActual = tasks.get(0);
+
+                if ("APROBADO".equalsIgnoreCase(ss.getEstado()) || "FINALIZADO".equalsIgnoreCase(ss.getEstado())) {
+                    HistoricoTramiteObservacionDto hto = new HistoricoTramiteObservacionDto();
+                    hto.setObservacion("Trámite concluido");
+                    hto.setFechaCreacion(observacionesDto.get(observacionesDto.size() - 1).getFechaCreacion());
+                    observacionesDto.add(hto);
+                } else {
+                    List<TaskModelTramite> lista = diagramaService.buscarTarea(ht.getIdProceso(), tramiteMapper.toDto(ht));
+
+                    List<TaskModelTramite> listaTemp = new ArrayList<>();
+
+                    if (Utils.isNotEmpty(lista)) {
+                        listaTemp = lista.stream().filter(t -> t.getEndDate() == null).toList();
                     }
-                    UsuarioDetalle ud = personaService.getUsuario(obs.getUsuarioCreacion());
-                    if (ud != null) {
-                        if (ud.getServidor() != null) {
-                            if (ud.getServidor().getDireccionAdministrativa() != null) {
-                                obs.setUsuarioCreacion(ud.getServidor().getDireccionAdministrativa().getNombre() + "\n" +
-                                        ud.getServidor().getNombres() + " " + ud.getServidor().getApellidos() + "\n" +
-                                        "(" + ud.getUsuario() + ")");
+
+                    List<UsuarioDetalle> usuarios = new ArrayList<>();
+
+                    if (Utils.isNotEmpty(listaTemp)) {
+                        listaTemp.forEach(t -> usuarios.addAll(t.getUsuarios()));
+                    }
+
+                    for (UsuarioDetalle u : usuarios) {
+                        HistoricoTramiteObservacionDto hto = new HistoricoTramiteObservacionDto();
+                        hto.setUsuarioCreacion(u.getUsuario());
+                        hto.setTarea(tareaActual.getTaskName());
+                        hto.setObservacion("Trámite en atención. Pendiente de avance o finalización de tarea.");
+                        hto.setFechaCreacion(new Date());
+                        observacionesDto.add(hto);
+                    }
+                }
+
+                for (HistoricoTramiteObservacionDto obs : observacionesDto) {
+                    if (Utils.isNotEmptyString(obs.getUsuarioCreacion())) {
+                        // Validación para usuarios del sistema de catastros
+                        if (obs.getUsuarioCreacion().matches("[A-Z]{2}[a-z]+")) {
+                            BusquedaDinamica b = BusquedaDinamica.builder("AclUser").unicoResultado(true).where("usuario", obs.getUsuarioCreacion()).build();
+
+                            AclUser user = (AclUser) this.restService.restPOST(this.appProps.getUrlBddimi().concat("busquedas/findBy"), null, b, AclUser.class);
+
+                            if (user != null) {
+                                if (user.getEnte() != null) {
+                                    obs.setUsuarioCreacion("DIRECCIÓN DE DESARROLLO Y ORDENAMIENTO TERRITORIAL \n" + user.getEnte().getNombres() + " " + user.getEnte().getApellidos() + "\n (" + user.getUsuario() + ")");
+                                }
                             }
+                        } else if (obs.getUsuarioCreacion().matches("[a-z]+")) {  // Usuarios de SmartGob
+                            UsuarioDetalle ud = personaService.getUsuario(obs.getUsuarioCreacion());
+                            if (ud != null) {
+                                if (ud.getServidor() != null) {
+                                    if (ud.getServidor().getDireccionAdministrativa() != null) {
+                                        obs.setUsuarioCreacion(ud.getServidor().getDireccionAdministrativa().getNombre() + "\n" + ud.getServidor().getNombres() + " " + ud.getServidor().getApellidos() + "\n" + "(" + ud.getUsuario() + ")");
+                                    }
+                                }
+                            }
+                        } else if (obs.getUsuarioCreacion().matches("\\d+")) { // Usuarios ventanilla externa (ciudadanos)
+                            Persona p = personaService.consultarPersona(obs.getUsuarioCreacion());
+                            obs.setUsuarioCreacion("CIUDADANO \n" + p.getNombre() + " " + p.getApellido() + "\n (" + p.getNumIdentificacion() + ")");
+
                         }
                     }
                 }
@@ -246,7 +318,9 @@ public class HistoricoTramiteService {
         if (id != null) {
             ht = repository.getReferenceById(id);
         } else {
+            System.out.println("numTramite: "+numTramite);
             ht = repository.findFirstByTramiteOrderByIdDesc(numTramite);
+            System.out.println("ht.getTramite(): "+ht.getTramite());
         }
 
         if (ht != null) {
@@ -275,17 +349,31 @@ public class HistoricoTramiteService {
     }
 
     public HistoricoTramiteDto actualizarHistoricoTramite(HistoricoTramiteDto dto) {
-        Persona persona = personaRepository.getReferenceById(dto.getSolicitante().getId());
-        HistoricoTramite historicoTramite = tramiteMapper.toEntity(dto);
-        historicoTramite.setSolicitante(persona);
-        historicoTramite = repository.save(historicoTramite);
-        return tramiteMapper.toDto(historicoTramite);
+        try {
+            Persona persona = personaRepository.getReferenceById(dto.getSolicitante().getId());
+            HistoricoTramite historicoTramite = tramiteMapper.toEntity(dto);
+            historicoTramite.setSolicitante(persona);
+//            System.out.println("Actualizando tramite " + historicoTramite.getTramite() + " referencia " + historicoTramite.getReferencia());
+            historicoTramite = repository.save(historicoTramite);
+            return tramiteMapper.toDto(historicoTramite);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new HistoricoTramiteDto();
+        }
     }
 
-    public List<TareaPendiente> listarTareasActivas(String usuario, Pageable pageable, MultiValueMap<String, String> headers) {
+    public List<TareaPendiente> listarTareasActivas(String usuario, Long departamento, Pageable pageable, MultiValueMap<String, String> headers) {
         try {
-            Page<TareasActivas> list = repository.findAllTareasActivasPage(usuario.toUpperCase(), pageable);
+            System.out.println("Usuario: " + usuario + " departamento: " + departamento);
+            Page<TareasActivas> list = null;
+            if (departamento != null) {
+                list = repository.findAllTareasActivasDepartamentoPage(usuario.toUpperCase(), departamento, pageable);
+            } else {
+                list = repository.findAllTareasActivasPage(usuario.toUpperCase(), pageable);
+            }
+            Boolean isServiceAvailableVentanilla = Utils.isServiceAvailable(appProps.getUrlVentanillaInterna(), 1000);
             headers.add("rootSize", list.getTotalElements() + "");
+            System.out.println("Tareas " + list.getTotalElements() + "");
             List<TareasActivas> activas = list.getContent();
             List<TareaPendiente> result = new ArrayList<>(activas.size());
             if (Utils.isNotEmpty(activas)) {
@@ -309,9 +397,9 @@ public class HistoricoTramiteService {
                     tp.setReferenciaId(t.getReferenciaId());
 
                     HistoricoTramite ht = this.historicoTramiteRepo.findById(t.getIdTramite()).orElse(null);
-                    HistoricoTramiteDto dto = tramiteMapper.toDto(ht);
-                    tp.setTramite(dto);
                     if (ht != null) {
+                        HistoricoTramiteDto dto = tramiteMapper.toDto(ht);
+                        tp.setTramite(dto);
                         tp.setIdTipoTramite(ht.getTipoTramite());
                         if (ht.getSolicitante() != null) {
                             PersonaDto persona = (PersonaDto) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + ht.getSolicitante().getId(), null, null, PersonaDto.class);
@@ -324,17 +412,21 @@ public class HistoricoTramiteService {
                                 }
                             }
                         }
-                        SolicitudServicioDto ws = new SolicitudServicioDto();
-                        ws.setId(ht.getReferenciaId());
-                        try {
-                            SolicitudServicioDto ss = (SolicitudServicioDto) restService.restPOST(appProps.getUrlVentanillaInterna() + "solicitudServicio/listar-id", null, ws, SolicitudServicioDto.class);
-                            if (ss != null) {
-                                tp.setPredio(ss.getPredio());
-                                tp.setSolicitudServicio(ss);
-                                dto.setCarpetaRep(ss.getTramite());
+                        if (Boolean.TRUE.equals(ht.getTipoTramite().getVentanillaPublica())) {
+                            SolicitudServicioDto ws = new SolicitudServicioDto();
+                            ws.setId(ht.getReferenciaId());
+                            try {
+                                if (isServiceAvailableVentanilla) {
+                                    SolicitudServicioDto ss = (SolicitudServicioDto) restService.restPOST(appProps.getUrlVentanillaInterna() + "solicitudServicio/listar-id", null, ws, SolicitudServicioDto.class);
+                                    if (ss != null) {
+                                        tp.setPredio(ss.getPredio());
+                                        tp.setSolicitudServicio(ss);
+                                        dto.setCarpetaRep(ss.getTramite());
+                                    }
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                     }
 
@@ -363,10 +455,7 @@ public class HistoricoTramiteService {
             }
 
             // 2. Procesamiento en paralelo con streams
-            return list.getContent().parallelStream()
-                    .map(this::convertirTareaPendiente)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+            return list.getContent().parallelStream().map(this::convertirTareaPendiente).filter(Objects::nonNull).collect(Collectors.toList());
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -400,9 +489,7 @@ public class HistoricoTramiteService {
             PersonaDto persona = obtenerDatosPersona(ht.getSolicitante().getId());
             if (persona != null && persona.getNumIdentificacion() != null) {
                 tp.setPersona(persona);
-                String nombreCompleto = persona.getTipoIdentificacion() == 1L
-                        ? persona.getApellido() + " " + persona.getNombre()
-                        : persona.getNombre();
+                String nombreCompleto = persona.getTipoIdentificacion() == 1L ? persona.getApellido() + " " + persona.getNombre() : persona.getNombre();
                 tp.setNombrePropietario(nombreCompleto);
             }
         } catch (Exception e) {
@@ -412,49 +499,50 @@ public class HistoricoTramiteService {
 
     @Cacheable(value = "personaCache", key = "#idSolicitante")
     public PersonaDto obtenerDatosPersona(Long idSolicitante) {
-        return (PersonaDto) restService.restPOST(
-                appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + idSolicitante,
-                null,
-                null,
-                PersonaDto.class
-        );
+        return (PersonaDto) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarSolicitante/" + idSolicitante, null, null, PersonaDto.class);
     }
 
     private void completarDatosSolicitud(TareaPendiente tp, HistoricoTramite ht) {
         if (ht.getReferenciaId() == null) return;
 
         try {
-            SolicitudServicioDto ss = obtenerDatosSolicutid(ht.getReferenciaId());
+            SolicitudServicioDto ss = obtenerDatosSolicitud(ht.getReferenciaId());
 
             if (ss != null) {
-                tp.setPredio(ss.getPredio());
-                tp.setSolicitudServicio(ss);
-                tp.getTramite().setCarpetaRep(ss.getTramite());
+                if (ss.getId() != null) {
+                    tp.setPredio(ss.getPredio());
+                    tp.setSolicitudServicio(ss);
+                    tp.getTramite().setCarpetaRep(ss.getTramite());
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    @Cacheable(value = "personaCache", key = "#referenciaId")
-    public SolicitudServicioDto obtenerDatosSolicutid(Long referenciaId) {
+    @Cacheable(value = "obtenerDatosSolicitud", key = "#referenciaId")
+    public SolicitudServicioDto obtenerDatosSolicitud(Long referenciaId) {
 
         SolicitudServicioDto ws = new SolicitudServicioDto();
         ws.setId(referenciaId);
+        if (Utils.isServiceAvailable(appProps.getUrlVentanillaInterna(), 1000)) {
+            ws = (SolicitudServicioDto) restService.restPOST(appProps.getUrlVentanillaInterna() + "solicitudServicio/listar-id", null, ws, SolicitudServicioDto.class);
+        }
+        if (ws == null) {
+            ws = new SolicitudServicioDto();
+        }
 
-        return (SolicitudServicioDto) restService.restPOST(
-                appProps.getUrlVentanillaInterna() + "solicitudServicio/listar-id",
-                null,
-                ws,
-                SolicitudServicioDto.class
-        );
+        return ws;
     }
 
-    private boolean esCedulaValida(String usuarioCreacion) {
-        return usuarioCreacion != null && usuarioCreacion.matches("\\d{10}");
+    public String HistoricoTramiteObservacionxUsuario(Long historicoTramiteId, String nombreTarea) {
+        try {
+            return observacionRepo.usuarioPorTramite(historicoTramiteId, nombreTarea);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
-    private boolean esRucValido(String usuarioCreacion) {
-        return usuarioCreacion != null && usuarioCreacion.matches("\\d{13}");
-    }
 }

@@ -2,6 +2,7 @@ package org.ibarra.service;
 
 import org.ibarra.conf.AppProps;
 import org.ibarra.dto.PersonaDto;
+import org.ibarra.dto.RequestWs;
 import org.ibarra.dto.Usuario;
 import org.ibarra.dto.UsuarioDetalle;
 import org.ibarra.entity.Persona;
@@ -61,6 +62,16 @@ public class PersonaService {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public Persona consultarPersona(String identificacion) {
+        try {
+            Persona persona = (Persona) restService.restPOST(appProps.getUrlAdministrativo() + "cliente/consultarDatosPersona", null, new RequestWs(identificacion), Persona.class);
+            return persona;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
 }

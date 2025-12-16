@@ -11,6 +11,8 @@ import org.ibarra.util.model.Grafico;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -476,4 +478,19 @@ public abstract class Utils {
         }
     }
 
+    public static boolean isServiceAvailable(String url, int timeout) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
+            connection.setRequestMethod("HEAD");
+            connection.setConnectTimeout(timeout);
+            connection.setReadTimeout(timeout);
+
+            int responseCode = connection.getResponseCode();
+            connection.disconnect();
+
+            return (responseCode >= 200 && responseCode < 400);
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
