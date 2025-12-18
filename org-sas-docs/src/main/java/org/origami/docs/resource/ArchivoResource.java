@@ -166,6 +166,7 @@ public class ArchivoResource {
         response.setContentType(mimeType);
         response.setContentLength(archivo.length);
         response.setHeader("Content-disposition", "attachment; filename=" + dto.getNombre());
+        headers.setContentType((MediaType.valueOf(mimeType)));
         headers.setContentLength(archivo.length);
         headers.setCacheControl(CacheControl.noCache().getHeaderValue());
 
