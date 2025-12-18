@@ -162,9 +162,10 @@ public class ArchivoResource {
         }
 
         // Establecer los encabezados para la respuesta
+        System.out.println("mimeType: " + mimeType);
         response.setContentType(mimeType);
         response.setContentLength(archivo.length);
-        response.setHeader("Content-disposition", "inline; filename=" + dto.getNombre());
+        response.setHeader("Content-disposition", "attachment; filename=" + dto.getNombre());
         headers.setContentLength(archivo.length);
         headers.setCacheControl(CacheControl.noCache().getHeaderValue());
 
