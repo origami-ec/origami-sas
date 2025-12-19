@@ -148,25 +148,9 @@ public class ArchivoResource {
         byte[] archivo = FileUtils.readFileToByteArray(file);
 
         // Si el archivo no está vacío, procede con el contenido
-//        response.setContentType(dto.getFormato().equals("IMG") ? MediaType.IMAGE_JPEG_VALUE : MediaType.APPLICATION_PDF_VALUE);
-        // Establecer el tipo MIME
-        String mimeType;
-        if (dto.getNombre().endsWith(".dwg")) {
-            mimeType = "application/acad";  // Tipo MIME para archivos DWG
-        } else if (dto.getFormato().equals("IMG")) {
-            mimeType = MediaType.IMAGE_JPEG_VALUE;  // Tipo MIME para imágenes
-        } else if (dto.getFormato().equals("PDF")) {
-            mimeType = MediaType.APPLICATION_PDF_VALUE;  // Tipo MIME para PDF
-        } else {
-            mimeType = MediaType.APPLICATION_OCTET_STREAM_VALUE;  // Default para otros tipos
-        }
-
-        // Establecer los encabezados para la respuesta
-        System.out.println("mimeType: " + mimeType);
-        response.setContentType(mimeType);
+        response.setContentType(dto.getFormato().equals("IMG") ? MediaType.IMAGE_JPEG_VALUE : MediaType.APPLICATION_PDF_VALUE);
         response.setContentLength(archivo.length);
-        response.setHeader("Content-disposition", "attachment; filename=" + dto.getNombre());
-        headers.setContentType((MediaType.valueOf(mimeType)));
+        response.setHeader("Content-disposition", "inline; filename=" + dto.getNombre());
         headers.setContentLength(archivo.length);
         headers.setCacheControl(CacheControl.noCache().getHeaderValue());
 
