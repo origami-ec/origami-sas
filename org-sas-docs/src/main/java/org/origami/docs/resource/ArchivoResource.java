@@ -191,38 +191,15 @@ public class ArchivoResource {
         return new ResponseEntity<>(responseBody, response ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
     }
 
-    @RequestMapping(path = "archivo/consultarArchivoEncrypted/{archivoId}", method = RequestMethod.GET)
-    public void consultarArchivoEncrypted(@PathVariable String archivoId, HttpServletResponse response) throws IOException {
-        org.apache.commons.codec.binary.Base64 base64 = new org.apache.commons.codec.binary.Base64();
-        String idArchivoDeco = new String(base64.decode(archivoId));
-        // 1. Obtener datos
-        ArchivoDto dto = service.consultarArchivo(new ArchivoDto(idArchivoDeco));
-        if (dto == null) {
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            return;
-        }
-
-        File file = new File(dto.getRuta());
-        if (!file.exists() || file.length() == 0) {
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
-            return;
-        }
-
-        byte[] archivoBytes = FileUtils.readFileToByteArray(file);
-
-        // 2. Configurar respuesta para el Microservicio A
-        // Usamos octet-stream para decir "aquí van bytes puros"
-        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
-        response.setContentLength(archivoBytes.length);
-
-        // Es buena práctica poner el nombre aquí también, por si acaso
-        String headerValue = String.format("attachment; filename=\"%s\"", dto.getNombre());
-        response.setHeader("Content-Disposition", headerValue);
-
-        // 3. Escribir
-        try (OutputStream os = response.getOutputStream()) {
-            os.write(archivoBytes);
-            os.flush();
+    @RequestMapping(path = "archivo/consultarArchivoByte/{archivoId}", method = RequestMethod.GET)
+    public byte[] consultarArchivoByre(@PathVariable String archivoId) {
+        try {
+            ArchivoDto dto = service.consultarArchivo(new ArchivoDto(archivoId));
+            File file = new File(dto.getRuta());
+            return FileUtils.readFileToByteArray(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }
