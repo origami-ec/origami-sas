@@ -62,10 +62,10 @@ public class TramiteResource {
     }
 
     @GetMapping("/findAllTareasActivas/{usuario}")
-    public ResponseEntity<List<TareaPendiente>> findAllTareasActivas(@PathVariable String usuario, Pageable pageable) {
+    public ResponseEntity<List<TareaPendiente>> findAllTareasActivas(@PathVariable String usuario, @RequestParam(required = false) Long departamento, Pageable pageable) {
         try {
             MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            List<TareaPendiente> tareas = service.listarTareasActivas(usuario, pageable, headers);
+            List<TareaPendiente> tareas = service.listarTareasActivas(usuario, departamento, pageable, headers);
             if (tareas.isEmpty()) {
                 return ResponseEntity.noContent().build();
             }

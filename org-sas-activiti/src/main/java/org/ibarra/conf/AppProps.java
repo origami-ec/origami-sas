@@ -31,6 +31,8 @@ public class AppProps {
     private String imagenes;
     @Value("${app.reportes}")
     private String reportes;
+    @Value("${app.urlBddimi}")
+    private String urlBddimi;
 
     public AppProps() {
     }
@@ -89,5 +91,13 @@ public class AppProps {
 
     public String getUrlTalentoHumano() {
         return urlTalentoHumano;
+    }
+
+    public String getUrlBddimi() {
+        return urlBddimi;
+    }
+
+    public void setUrlBddimi(String urlBddimi) {
+        this.urlBddimi = urlBddimi;
     }
 }

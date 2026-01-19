@@ -308,4 +308,79 @@ public class BusquedaDinamica implements Serializable {
         }
         orders.put(field, order);
     }
+
+    public static Builder builder(String entity) {
+        return new Builder(entity);
+    }
+
+    public static final class Builder {
+
+        private BusquedaDinamica b;
+
+        public Builder(String entity) {
+            b = new BusquedaDinamica(entity);
+        }
+
+        public Builder first(Integer first) {
+            b.setFirst(first);
+            return this;
+        }
+
+        public Builder pageSize(Integer pageSize) {
+            b.setPageSize(pageSize);
+            return this;
+        }
+
+        public Builder pageSize(Boolean distinct) {
+            b.setDistinct(distinct);
+            return this;
+        }
+
+        public Builder where(String field, Object value) {
+            if (b.getFilters() == null) {
+                b.setFilters(new LinkedHashMap<>());
+            }
+            b.getFilters().put(field, value);
+            return this;
+        }
+
+        public Builder whereCondition(String field, WhereCondition value) {
+            if (b.getFilters() == null) {
+                b.setFilters(new LinkedHashMap<>());
+            }
+            b.getFilters().put(field, value);
+            return this;
+        }
+
+        public Builder order(String field, String order) {
+            if (b.getOrders() == null) {
+                b.setOrders(new LinkedHashMap<>());
+            }
+            b.getOrders().put(field, order);
+            return this;
+        }
+
+        public Builder functions(String field, String order) {
+            if (b.getFunctions() == null) {
+                b.setFunctions(new LinkedHashMap<>());
+            }
+            b.getFunctions().put(field, order);
+            return this;
+        }
+
+        public Builder distinct(Boolean distinct) {
+            b.setDistinct(distinct);
+            return this;
+        }
+
+        public Builder unicoResultado(Boolean unicoResultado) {
+            b.setUnicoResultado(unicoResultado);
+            return this;
+        }
+
+        public BusquedaDinamica build() {
+            return b;
+        }
+    }
+
 }

@@ -6,7 +6,9 @@ import org.ibarra.util.EsquemaConfig;
 import java.util.Date;
 
 @Entity
-@Table(name = "historico_tramite", schema = EsquemaConfig.procesos, indexes = {@Index(name = "idx_historico_tramite_proceso", columnList = "idProceso"), @Index(name = "idx_historico_tramite_tramite", columnList = "tramite")})
+@Table(name = "historico_tramite", schema = EsquemaConfig.procesos,
+        indexes = {@Index(name = "idx_historico_tramite_proceso", columnList = "idProceso"),
+                @Index(name = "idx_historico_tramite_tramite", columnList = "tramite")})
 public class HistoricoTramite {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

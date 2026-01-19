@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.validation.Valid;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -127,35 +128,35 @@ public class ArchivoResource {
 
     @RequestMapping(path = "archivo/consultarDocumento/{archivoId}", method = RequestMethod.GET)
     public void consultarArchivo(@PathVariable String archivoId, HttpServletResponse response) throws IOException {
-        HttpHeaders headers = new HttpHeaders();
-
+        // 1. Obtener datos
         ArchivoDto dto = service.consultarArchivo(new ArchivoDto(archivoId));
         if (dto == null) {
-            // Si la ruta es nula, responde con un error 404 (No encontrado)
-            response.setStatus(HttpServletResponse.SC_NOT_FOUND); // 404
-            response.getWriter().write("El archivo no se encuentra disponible.");
-            return; // No se continua con el proceso
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
 
-        // Lee el archivo en un array de bytes
         File file = new File(dto.getRuta());
         if (!file.exists() || file.length() == 0) {
-            // Si el archivo no existe o está vacío, responde con un error 204 (No Content)
-            response.setStatus(HttpServletResponse.SC_NO_CONTENT); // 204
-            return; // No es necesario escribir más en la respuesta
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+            return;
         }
 
-        byte[] archivo = FileUtils.readFileToByteArray(file);
+        byte[] archivoBytes = FileUtils.readFileToByteArray(file);
 
-        // Si el archivo no está vacío, procede con el contenido
-        response.setContentType(dto.getFormato().equals("IMG") ? MediaType.IMAGE_JPEG_VALUE : MediaType.APPLICATION_PDF_VALUE);
-        response.setContentLength(archivo.length);
-        response.setHeader("Content-disposition", "inline; filename=" + dto.getNombre());
-        headers.setContentLength(archivo.length);
-        headers.setCacheControl(CacheControl.noCache().getHeaderValue());
+        // 2. Configurar respuesta para el Microservicio A
+        // Usamos octet-stream para decir "aquí van bytes puros"
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
+        response.setContentLength(archivoBytes.length);
 
-        // Escribe el archivo al output stream
-        response.getOutputStream().write(archivo);
+        // Es buena práctica poner el nombre aquí también, por si acaso
+        String headerValue = String.format("attachment; filename=\"%s\"", dto.getNombre());
+        response.setHeader("Content-Disposition", headerValue);
+
+        // 3. Escribir
+        try (OutputStream os = response.getOutputStream()) {
+            os.write(archivoBytes);
+            os.flush();
+        }
     }
 
 
@@ -188,5 +189,17 @@ public class ArchivoResource {
         responseBody.put("message", response ? "Archivo reemplazado con éxito" : "Error al reemplazar el archivo");
 
         return new ResponseEntity<>(responseBody, response ? HttpStatus.OK : HttpStatus.BAD_REQUEST);
+    }
+
+    @RequestMapping(path = "archivo/consultarArchivoByte/{archivoId}", method = RequestMethod.GET)
+    public byte[] consultarArchivoByre(@PathVariable String archivoId) {
+        try {
+            ArchivoDto dto = service.consultarArchivo(new ArchivoDto(archivoId));
+            File file = new File(dto.getRuta());
+            return FileUtils.readFileToByteArray(file);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

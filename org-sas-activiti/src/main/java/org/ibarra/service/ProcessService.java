@@ -232,15 +232,24 @@ public class ProcessService {
     public String taskComplete(Tarea tarea) {
         this.taskService = this.processEngine.getTaskService();
         try {
+            String idProceso = tarea.getTramite().getIdProceso();
+            System.out.println("id proceso: " + idProceso);
+            Task task = null;
+            if (idProceso != null && tarea.getParametros() != null && tarea.getParametros().containsKey("RECLAMA")) {
+                task = this.processEngine.getTaskService().createTaskQuery().active().processInstanceId(idProceso).singleResult();
+                if (task != null && task.getAssignee() == null) {
+                    String userReclama = (String) tarea.getParametros().get("RECLAMA");
+                    taskService.claim(tarea.getTaskId(), userReclama);  // Reemplazar "usuario" por el nombre de usuario real
+                    System.out.println("Tarea reclamada por el usuario: " + userReclama);
+                }
+            }
             taskService.complete(tarea.getTaskId(), tarea.getParametros());
             System.out.println("Tarea Completada " + tarea.getTaskId() + " tarea.getParametros() " + tarea.getParametros());
             tramiteService.guardarObservacion(tarea.getTramite().getId(), tarea.getObservacionUsuario(), tarea);
             System.out.println("Tarea Observaciones " + tarea.getTaskId() + " tarea.getNotificacionAsignacion(): " + tarea.getNotificacionAsignacion());
+            System.out.println("Tarea Observaciones " + tarea.getTaskId() + " tarea.getNotificacionAsignacion(): " + tarea.getNotificacionAsignacion());
             if (tarea.getNotificacionAsignacion() != null && Boolean.TRUE.equals(tarea.getNotificacionAsignacion())) {
-                String idProceso = tarea.getTramite().getIdProceso();
-                if (idProceso != null) {
-                    Task task = this.processEngine.getTaskService().createTaskQuery().active().processInstanceId(idProceso).singleResult();
-                    System.out.println("// enviando notificaicon de asignacion de tarea");
+                if (task != null && task.getAssignee() != null) {
                     envioAlertarService.enviarCorreoTareaAsignada(task, tarea.getTramite());
                 }
             }
@@ -555,11 +564,19 @@ public class ProcessService {
             List<Tramites> result = new ArrayList<>();
             List<String> processInstans = null;
             Boolean filtrar = false;
+            System.out.println("Tramite: " + tramite != null);
             if (tramite != null) {
                 if (tramite.getTramite() != null) {
                     HistoricoTramite dHistoricoTramite = this.historicoTramiteMapper.toEntity(tramite.getTramite());
+                    if (tramite.getTramite().getSolicitante() != null) {
+                        Persona p = new Persona();
+                        p.setNumIdentificacion(tramite.getTramite().getSolicitante().getNumIdentificacion());
+                        p.setNombreCompleto(tramite.getTramite().getSolicitante().getNombreCompleto());
+                        dHistoricoTramite.setSolicitante(p);
+                    }
                     List<HistoricoTramite> all = this.repository.findAll(Example.of(dHistoricoTramite, ExampleMatcher.matching().withIgnoreNullValues().withIgnoreCase().withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING)));
-                    System.out.println(dHistoricoTramite);
+                    System.out.println("dHistoricoTramite: " + dHistoricoTramite);
+                    System.out.println("all: " + all.size());
                     if (Utils.isNotEmpty(all)) {
                         filtrar = true;
                         processInstans = all.stream().map(HistoricoTramite::getIdProceso).filter(Objects::nonNull).collect(Collectors.toList());
@@ -568,6 +585,7 @@ public class ProcessService {
             }
             List<HistoricTaskInstance> taskHistory = new ArrayList<>();
             HistoricTaskInstanceQuery instanceQuery = null;
+            System.out.println("filtrar: " + filtrar);
             if (filtrar) {
                 if (usuario.equals("")) {
                     instanceQuery = processEngine.getHistoryService().createHistoricTaskInstanceQuery().processInstanceIdIn(processInstans).orderByTaskCreateTime().desc();
@@ -576,6 +594,7 @@ public class ProcessService {
                     instanceQuery = processEngine.getHistoryService().createHistoricTaskInstanceQuery().orderByTaskCreateTime().taskAssignee(usuario).processInstanceIdIn(processInstans).desc();
                 }
             } else {
+                System.out.println("Usuario: " + usuario);
                 if (usuario.equals("")) {
                     instanceQuery = processEngine.getHistoryService().createHistoricTaskInstanceQuery().orderByTaskCreateTime().desc();
 
