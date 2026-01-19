@@ -8,10 +8,10 @@
         <version>2.5.6</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>org.ibarra.media</groupId>
-    <artifactId>org-ibarra-media</artifactId>
+    <groupId>org.sas.media</groupId>
+    <artifactId>org-sas-media</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>org-ibarra-media</name>
+    <name>org-sas-media</name>
     <description>Media project for Spring Boot</description>
 
     <properties>

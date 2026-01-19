@@ -1,10 +1,16 @@
 FROM maven:3.9-eclipse-temurin-22 AS build
 WORKDIR /app
-COPY . .
+
+# Primero copiar solo pom.xml y descargar dependencias
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# Luego copiar el código fuente y compilar
+COPY src ./src
 RUN mvn clean package -Dmaven.test.skip=true
 
 FROM openjdk:25-ea-23-jdk-oraclelinux8
-COPY --from=build /app/target/org-ibarra-media-0.0.1-SNAPSHOT.jar /opt/app/org-ibarra-media-0.0.1.jar
+COPY --from=build /app/target/org-sas-media-0.0.1-SNAPSHOT.jar /opt/app/org-sas-media-0.0.1.jar
 WORKDIR /opt/app
 EXPOSE 8720
-ENTRYPOINT ["java","-jar","org-ibarra-media-0.0.1.jar"]
+ENTRYPOINT ["java","-jar","org-sas-media-0.0.1.jar"]
