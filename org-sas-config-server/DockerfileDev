@@ -1,8 +1,0 @@
-FROM openjdk:23-oraclelinux8
-#FROM adoptopenjdk/openjdk11:alpine-jre
-COPY ./target/org-sas-config-0.0.1-SNAPSHOT.jar /opt/app/org-sas-config.jar
-WORKDIR /opt/app
-RUN sh -c 'touch org-sas-config.jar'
-EXPOSE 8888
-ENTRYPOINT ["java","-Dspring.profiles.active=dev","-jar","org-sas-config.jar"]
-
