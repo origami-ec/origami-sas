@@ -14,4 +14,4 @@ COPY --from=build /app/target/org-ibarra-gateway-1.2.0.jar /opt/app/org-ibarra-g
 WORKDIR /opt/app
 RUN sh -c 'touch org-ibarra-gateway.jar'
 EXPOSE 80
-ENTRYPOINT ["java","-jar", "-Dspring.profiles.active=dev", "org-ibarra-gateway.jar"]
+ENTRYPOINT ["java","-jar", "org-ibarra-gateway.jar"]
