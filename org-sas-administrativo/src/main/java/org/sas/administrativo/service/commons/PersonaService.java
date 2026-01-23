@@ -3,16 +3,11 @@ package org.sas.administrativo.service.commons;
 import org.sas.administrativo.conf.AppProps;
 import org.sas.administrativo.dto.RespuestaWs;
 import org.sas.administrativo.dto.commons.PersonaDto;
-import org.sas.administrativo.entity.Canton;
-import org.sas.administrativo.entity.Parroquia;
 import org.sas.administrativo.entity.Persona;
-import org.sas.administrativo.entity.configuracion.CatalogoItem;
-import org.sas.administrativo.entity.talentohumano.PersonaActividad;
+import org.sas.administrativo.entity.PersonaActividad;
 import org.sas.administrativo.mapper.PersonaMapper;
 import org.sas.administrativo.repository.PersonaRepository;
-import org.sas.administrativo.repository.configuracion.ParroquiaRepository;
 import org.sas.administrativo.repository.talentohumano.PersonaActividadRepository;
-import org.sas.administrativo.service.configuracion.CantonService;
 import org.sas.administrativo.util.Constantes;
 import org.sas.administrativo.util.Utils;
 import org.sas.administrativo.util.model.*;
@@ -28,8 +23,6 @@ import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Optional;
-import java.util.logging.Level;
 
 @Service
 public class PersonaService {

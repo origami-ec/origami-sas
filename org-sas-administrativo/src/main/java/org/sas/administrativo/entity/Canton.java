@@ -1,6 +1,7 @@
 package org.sas.administrativo.entity;
 
 
+import org.sas.administrativo.entity.configuracion.Provincia;
 import org.sas.administrativo.util.EsquemaConfig;
 
 import javax.persistence.*;

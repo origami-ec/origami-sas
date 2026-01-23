@@ -2,8 +2,6 @@ package org.sas.administrativo.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Formula;
-import org.sas.administrativo.entity.configuracion.CatalogoItem;
-import org.sas.administrativo.entity.talentohumano.PersonaActividad;
 
 import javax.persistence.*;
 import java.io.Serializable;

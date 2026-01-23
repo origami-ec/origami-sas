@@ -1,6 +1,6 @@
 package org.sas.administrativo.repository.talentohumano;
 
-import org.sas.administrativo.entity.talentohumano.PersonaActividad;
+import org.sas.administrativo.entity.PersonaActividad;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

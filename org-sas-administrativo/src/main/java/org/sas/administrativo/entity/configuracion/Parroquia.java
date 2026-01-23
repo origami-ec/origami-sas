@@ -1,5 +1,6 @@
-package org.sas.administrativo.entity;
+package org.sas.administrativo.entity.configuracion;
 
+import org.sas.administrativo.entity.Canton;
 import org.sas.administrativo.util.EsquemaConfig;
 
 import javax.persistence.*;

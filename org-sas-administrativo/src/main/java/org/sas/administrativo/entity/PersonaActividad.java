@@ -1,4 +1,4 @@
-package org.sas.administrativo.entity.talentohumano;
+package org.sas.administrativo.entity;
 
 import org.hibernate.annotations.Type;
 

@@ -157,7 +157,7 @@ public class CorreoService {
             multipart.addBodyPart(texto);
             //ADJUNTAR LOS ARCHIVO EN PARTES
             if (EmailUtils.isNotEmpty(correoDto.getAdjuntos())) {
-                System.out.println( "Adjuntos: "+ correoDto.getAdjuntos().size());
+             //   System.out.println( "Adjuntos: "+ correoDto.getAdjuntos().size());
                 MimeBodyPart file;
                 for (File f : correoDto.getAdjuntos()) {
                     file = new MimeBodyPart();
