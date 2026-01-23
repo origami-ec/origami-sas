@@ -8,7 +8,7 @@ services:
       - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
       - SPRING_CLOUD_CONFIG_URI=${SPRING_CLOUD_CONFIG_URI}
     ports:
-      - 81:80     # host:container
+      - 80:80     # host:container
     volumes:
       - /origamigt_archivo/:/origamigt_archivo/
     networks:
