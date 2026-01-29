@@ -97,10 +97,16 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-        <!-- DESPUÉS -->
         <dependency>
             <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-core</artifactId>
+            <artifactId>spring-session</artifactId>
+            <version>1.3.5.RELEASE</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.data</groupId>
+                    <artifactId>spring-data-gemfire</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/commons-net/commons-net -->
